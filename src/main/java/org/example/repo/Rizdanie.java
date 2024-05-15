@@ -15,12 +15,25 @@ public class Rizdanie extends RepoDB<Izdanie>{
     }
     @Override
     public Integer Add(Izdanie izdanie) throws SQLException {
-        String st = String.format("INSERT INTO izdanie (type, i_name, price) VALUES ('%s','%s','%s')",
-                izdanie.getType(),
-                izdanie.getName(),
-                izdanie.getPrice());
-        this.executeRequest(st);
-        return null;
+        int id;
+        String query = "INSERT INTO izdanie (type, i_name, price)" +
+                "VALUES (?,?,?)";
+        try (Connection conn = connectToDB();
+             PreparedStatement statement = conn.prepareStatement(query, Statement.RETURN_GENERATED_KEYS)) {
+            statement.setString(1, izdanie.getType());
+            statement.setString(2, izdanie.getName());
+            statement.setInt(3, izdanie.getPrice());
+            statement.executeUpdate();
+
+            try (ResultSet generatedKeys = statement.getGeneratedKeys()) {
+                if (generatedKeys.next()) {
+                    izdanie.setId(id = generatedKeys.getInt(1));
+                } else {
+                    throw new SQLException("Failed to get generated id for master.");
+                }
+            }
+        }
+        return id;
     }
 
     @Override

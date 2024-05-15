@@ -3,10 +3,7 @@ package main.java.org.example.repo;
 import main.java.org.example.entity.Izdanie;
 import main.java.org.example.entity.Poluchatel;
 
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -22,18 +19,31 @@ public class Rpoluchatel extends RepoDB<Poluchatel> {
         this.executeRequest(st);
     }
 
+
     @Override
     public Integer Add(Poluchatel poluchatel) throws SQLException {
-        String st = String.format("INSERT INTO poluchatel (family, name, otchestvo, street, house, flat)" +
-                        "VALUES ('%s','%s','%s','%s','%s','%s')",
-                poluchatel.getFamily(),
-                poluchatel.getName(),
-                poluchatel.getOtchestvo(),
-                poluchatel.getStreet(),
-                poluchatel.getHouse(),
-                poluchatel.getFlat());
-        this.executeRequest(st);
-        return null;
+        int id;
+        String query = "INSERT INTO poluchatel (family, name, otchestvo, street, house, flat)" +
+                "VALUES (?,?,?,?,?,?)";
+        try (Connection conn = connectToDB();
+             PreparedStatement statement = conn.prepareStatement(query, Statement.RETURN_GENERATED_KEYS)) {
+            statement.setString(1, poluchatel.getFamily());
+            statement.setString(2, poluchatel.getName());
+            statement.setString(3, poluchatel.getOtchestvo());
+            statement.setString(4, poluchatel.getStreet());
+            statement.setInt(5, poluchatel.getHouse());
+            statement.setInt(6, poluchatel.getFlat());
+            statement.executeUpdate();
+
+            try (ResultSet generatedKeys = statement.getGeneratedKeys()) {
+                if (generatedKeys.next()) {
+                    poluchatel.setId(id = generatedKeys.getInt(1));
+                } else {
+                    throw new SQLException("Failed to get generated id for master.");
+                }
+            }
+        }
+        return id;
     }
 
     @Override

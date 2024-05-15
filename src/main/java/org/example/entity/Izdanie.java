@@ -40,4 +40,8 @@ public class  Izdanie {
     public void setPrice(int price) {
         this.price = price;
     }
+
+    public void setId(int id) {
+        this.id = id;
+    }
 }

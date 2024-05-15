@@ -27,6 +27,10 @@ public class Poluchatel {
         return family;
     }
 
+    public void setId(int id) {
+        this.id = id;
+    }
+
     public void setFamily(String family) {
         this.family = family;
     }
